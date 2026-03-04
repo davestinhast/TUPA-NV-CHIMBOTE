@@ -4,6 +4,10 @@ import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.jsx'
 
+localStorage.removeItem('tupa-theme');
+document.documentElement.removeAttribute('data-theme');
+
+
 
 const updateSW = registerSW({
     onNeedRefresh() {

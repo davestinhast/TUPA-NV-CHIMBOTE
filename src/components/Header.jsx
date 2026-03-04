@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, ChevronRight, ExternalLink, HelpCircle } from 'lucide-react';
-import DarkModeToggle from './DarkModeToggle';
 import LogoTupa from './LogoTupa';
 
 export default function Header() {
@@ -11,7 +10,7 @@ export default function Header() {
     return (
         <header className="site-header">
 
-            {}
+            { }
             <div className="header-top">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
                     <span>🇵🇪 Plataforma Digital Oficial del Estado Peruano</span>
@@ -27,14 +26,14 @@ export default function Header() {
                 </div>
             </div>
 
-            {}
+            { }
             <div className="header-main animate-fade-in">
 
                 <Link to="/" className="header-logo" style={{ textDecoration: 'none' }}>
                     <LogoTupa />
                 </Link>
 
-                {}
+                { }
                 <nav className="header-nav">
                     <Link
                         to="/"
@@ -81,12 +80,10 @@ export default function Header() {
                         <span>📄 TUPA 2025</span>
                     </a>
 
-                    <span style={{ width: '1px', height: '24px', background: 'var(--border)' }}></span>
-                    <DarkModeToggle />
                 </nav>
             </div>
 
-            {}
+            { }
             {!isHome && (
                 <div style={{
                     background: 'var(--bg)',
