@@ -37,14 +37,14 @@ function useCounter(end, duration = 1500) {
             if (!startTime) startTime = timestamp;
             const progress = Math.min((timestamp - startTime) / duration, 1);
 
-            
+
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             setCount(Math.floor(easeOutQuart * end));
 
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                setCount(end); 
+                setCount(end);
             }
         };
         window.requestAnimationFrame(step);
@@ -74,8 +74,8 @@ export default function Inicio() {
         return Object.entries(map).sort((a, b) => b[1] - a[1]);
     }, [procedures]);
 
-    
-    const procCount = useCounter(procedures.length || 260); 
+
+    const procCount = useCounter(procedures.length || 260);
     const catCount = useCounter(categories.length || 18);
     const gratisCount = useCounter(procedures.filter(p => p.costo && p.costo.toLowerCase().includes('gratuito')).length || 45);
 
@@ -92,23 +92,45 @@ export default function Inicio() {
         <>
             <section className="hero">
                 <div className="hero-content">
-                    <img
-                        src="/logo-tupa.svg"
-                        alt="TUPA Digital — Municipalidad Distrital de Nuevo Chimbote"
-                        style={{
-                            height: '160px',
-                            width: 'auto',
-                            objectFit: 'contain',
-                            marginBottom: '1.8rem',
-                            animation: 'fadeInUp 0.8s ease-out',
-                            filter: 'drop-shadow(0 4px 16px rgba(0,0,0,0.12))'
-                        }}
-                    />
-                    <p className="hero-subtitle">
+                    <div className="hero-lockup animate-fade-up">
+                        <div style={{
+                            width: '130px',
+                            height: '130px',
+                            background: 'white',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
+                            overflow: 'hidden',
+                        }}>
+                            <img
+                                src="/tupa-icon.png"
+                                alt="Ícono TUPA Digital"
+                                style={{
+                                    width: '200%',
+                                    height: '200%',
+                                    objectFit: 'contain',
+                                    transform: 'scale(1.8)',
+                                }}
+                            />
+                        </div>
+                        <div className="hero-lockup-text">
+                            <div className="hero-lockup-name">
+                                <span className="hero-lockup-tupa">TUPA</span>
+                                <span className="hero-lockup-digital">DIGITAL</span>
+                            </div>
+                            <div className="hero-lockup-divider" />
+                            <span className="hero-lockup-sub">Municipalidad Distrital de Nuevo Chimbote</span>
+                        </div>
+                    </div>
+
+                    <p className="hero-subtitle animate-fade-up" style={{ animationDelay: '0.2s' }}>
                         Directorio oficial de trámites y servicios de la Municipalidad Distrital de Nuevo Chimbote.
                         Consulta requisitos, costos y plazos de manera rápida, transparente y 100% digital.
                     </p>
-                    <form className="hero-search" onSubmit={handleSearch}>
+                    <form className="hero-search animate-fade-up" style={{ animationDelay: '0.4s' }} onSubmit={handleSearch}>
                         <Search className="search-icon" size={22} strokeWidth={2.5} />
                         <input
                             type="text"
@@ -119,22 +141,22 @@ export default function Inicio() {
                     </form>
 
                     <div className="hero-stats animate-fade-up" style={{ animationDelay: '0.6s' }}>
-                        <div className="hero-stat">
-                            <div className="hero-stat-icon"><FileText size={24} strokeWidth={2.5} /></div>
+                        <div className="hero-stat" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)' }}>
+                            <div className="hero-stat-icon" style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }}><FileText size={24} strokeWidth={2.5} /></div>
                             <div className="hero-stat-info">
                                 <span className="number">{procCount}</span>
                                 <span className="label">Procedimientos</span>
                             </div>
                         </div>
-                        <div className="hero-stat">
-                            <div className="hero-stat-icon"><ClipboardList size={24} strokeWidth={2.5} /></div>
+                        <div className="hero-stat" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)' }}>
+                            <div className="hero-stat-icon" style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }}><ClipboardList size={24} strokeWidth={2.5} /></div>
                             <div className="hero-stat-info">
                                 <span className="number">{catCount}</span>
                                 <span className="label">Categorías</span>
                             </div>
                         </div>
-                        <div className="hero-stat">
-                            <div className="hero-stat-icon"><Landmark size={24} strokeWidth={2.5} /></div>
+                        <div className="hero-stat" style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(12px)' }}>
+                            <div className="hero-stat-icon" style={{ background: 'rgba(255,255,255,0.15)', color: 'white' }}><Landmark size={24} strokeWidth={2.5} /></div>
                             <div className="hero-stat-info">
                                 <span className="number">{gratisCount}</span>
                                 <span className="label">Gratuitos</span>

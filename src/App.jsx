@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Acerca from './pages/Acerca';
 import ScrollToTop from './components/ScrollToTop';
 import TupaBot from './components/TupaBot';
+import BackToTop from './components/BackToTop';
 
 function App() {
     return (
@@ -25,6 +26,7 @@ function App() {
             </main>
             <Footer />
             <TupaBot />
+            <BackToTop />
         </BrowserRouter>
     );
 }
