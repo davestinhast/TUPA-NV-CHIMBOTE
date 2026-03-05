@@ -26,7 +26,7 @@ export default function Footer() {
                             flexShrink: 0,
                         }}>
                             <img
-                                src="/tupa-icon.png"
+                                src={`${import.meta.env.BASE_URL}tupa-icon.png`}
                                 alt="Ícono TUPA Digital"
                                 style={{ width: '200%', height: '200%', objectFit: 'contain', transform: 'scale(1.8)' }}
                             />

@@ -90,7 +90,9 @@ export default function Inicio() {
 
     return (
         <>
-            <section className="hero">
+            <section className="hero" style={{
+                backgroundImage: `linear-gradient(160deg, rgba(13,38,68,0.65) 0%, rgba(100,15,15,0.55) 100%), url(${import.meta.env.BASE_URL}hero-chimbote.jpg)`
+            }}>
                 <div className="hero-content">
                     <div className="hero-lockup animate-fade-up">
                         <div style={{
@@ -106,7 +108,7 @@ export default function Inicio() {
                             overflow: 'hidden',
                         }}>
                             <img
-                                src="/tupa-icon.png"
+                                src={`${import.meta.env.BASE_URL}tupa-icon.png`}
                                 alt="Ícono TUPA Digital"
                                 style={{
                                     width: '200%',
