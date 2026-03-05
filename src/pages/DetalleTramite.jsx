@@ -167,7 +167,7 @@ export default function DetalleTramite() {
 
 
     useEffect(() => {
-        fetch('/data/procedimientos.json')
+        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
             .then(r => r.json())
             .then(data => {
                 const found = data.find(p => p.slug === slug);

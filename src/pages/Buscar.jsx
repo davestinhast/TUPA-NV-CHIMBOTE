@@ -12,10 +12,10 @@ export default function Buscar() {
 
     const query = searchParams.get('q') || '';
     const catFilter = searchParams.get('categoria') || '';
-    const quickFilter = searchParams.get('f') || ''; 
+    const quickFilter = searchParams.get('f') || '';
 
     useEffect(() => {
-        fetch('/data/procedimientos.json')
+        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
             .then(r => r.json())
             .then(data => { setProcedures(data); setLoading(false); })
             .catch(console.error);
@@ -57,7 +57,7 @@ export default function Buscar() {
         return result;
     }, [procedures, query, catFilter, quickFilter]);
 
-    
+
     const grouped = useMemo(() => {
         const map = {};
         filtered.forEach(p => {
@@ -86,7 +86,7 @@ export default function Buscar() {
     const updateQuickFilter = (f) => {
         setIsFiltering(true);
         const params = new URLSearchParams(searchParams);
-        if (quickFilter === f) params.delete('f'); 
+        if (quickFilter === f) params.delete('f');
         else params.set('f', f);
         setSearchParams(params);
         setTimeout(() => setIsFiltering(false), 300);

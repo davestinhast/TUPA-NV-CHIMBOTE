@@ -59,7 +59,7 @@ export default function Inicio() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetch('/data/procedimientos.json')
+        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
             .then(r => r.json())
             .then(setProcedures)
             .catch(console.error);

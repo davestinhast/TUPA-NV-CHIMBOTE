@@ -9,40 +9,40 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('/data/procedimientos.json')
+        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
             .then(r => r.json())
             .then(data => { setProcedures(data); setLoading(false); })
             .catch(console.error);
     }, []);
 
-    
+
     const stats = useMemo(() => {
         if (!procedures.length) return null;
 
         let gratuitos = 0;
         let automaticos = 0;
-        let rapidos = 0; 
+        let rapidos = 0;
         let virtuales = 0;
 
         const categoryCounts = {};
 
         procedures.forEach(p => {
-            
+
             if (p.costo && p.costo.toLowerCase().includes('gratuito')) gratuitos++;
 
-            
+
             if (p.calificacion && p.calificacion.toLowerCase().includes('automática')) automaticos++;
 
-            
+
             if (p.plazo) {
                 const match = p.plazo.match(/(\d+)/);
                 if (match && parseInt(match[1]) <= 5) rapidos++;
             }
 
-            
+
             if (p.canales && (p.canales.virtual || p.canales.correo)) virtuales++;
 
-            
+
             categoryCounts[p.categoria] = (categoryCounts[p.categoria] || 0) + 1;
         });
 
@@ -85,7 +85,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {}
+            { }
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 {kpiCards.map((kpi, i) => (
                     <div key={i} style={{ background: 'var(--bg-white)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)', position: 'relative', overflow: 'hidden' }}>
@@ -108,17 +108,17 @@ export default function Dashboard() {
                 ))}
             </div>
 
-            {}
+            { }
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
 
-                {}
+                { }
                 <div style={{ background: 'var(--bg-white)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
                     <h3 style={{ marginBottom: '1.5rem', color: 'var(--text)', fontSize: '1.1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.8rem' }}>Distribución por Categorías</h3>
                     <div style={{ height: 350 }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
-                                    data={stats.categoryData.slice(0, 8)} 
+                                    data={stats.categoryData.slice(0, 8)}
                                     cx="50%"
                                     cy="50%"
                                     innerRadius={80}
@@ -141,7 +141,7 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {}
+                { }
                 <div style={{ background: 'var(--bg-white)', padding: '1.5rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)' }}>
                     <h3 style={{ marginBottom: '1.5rem', color: 'var(--text)', fontSize: '1.1rem', borderBottom: '1px solid var(--border)', paddingBottom: '0.8rem' }}>Impacto Digital: Carga de Consultas (Simuladas)</h3>
                     <div style={{ height: 350 }}>
