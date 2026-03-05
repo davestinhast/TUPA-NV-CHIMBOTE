@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, FileText, CheckCircle, Clock, MapPin, AlertCircle, Scale, Building2, Home, Printer, Mail, Phone, Share2, Copy, Check, DollarSign, ClipboardList, Tag, ThumbsUp, ThumbsDown, Languages } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { api } from '../api';
 
 const categoryImages = {
     'Licencias de Edificación': 'https://images.unsplash.com/photo-1541888086425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200&h=400',
@@ -166,14 +167,10 @@ export default function DetalleTramite() {
 
 
     useEffect(() => {
-        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
-            .then(r => r.json())
-            .then(data => {
-                const found = data.find(p => p.slug === slug);
-                setProc(found || null);
-                setLoading(false);
-            })
-            .catch(console.error);
+        api.getProcedureBySlug(slug).then(found => {
+            setProc(found);
+            setLoading(false);
+        });
     }, [slug]);
 
 

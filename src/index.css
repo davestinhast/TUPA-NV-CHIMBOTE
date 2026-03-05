@@ -1910,3 +1910,77 @@ img {
         font-size: 1.8rem;
     }
 }
+
+/* --- Transparency Info Section --- */
+.transparency-section {
+    padding: 6rem 2rem;
+    background: #fcfcfc;
+    border-top: 1px solid #eee;
+}
+
+.transparency-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 3rem;
+    align-items: center;
+}
+
+.stat-card-premium {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    border: 1px solid #f0f0f0;
+}
+
+.stat-progress-container {
+    margin-top: 1.5rem;
+}
+
+.stat-progress-bar {
+    height: 12px;
+    background: #eee;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+}
+
+.stat-progress-fill {
+    height: 100%;
+    transition: width 1.5s ease-out;
+}
+
+.stat-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.transparency-text h2 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--secondary);
+    margin-bottom: 1.5rem;
+    letter-spacing: -0.03em;
+}
+
+.transparency-text p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.trust-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1.5rem;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}

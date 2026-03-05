@@ -1,18 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AreaChart, Area, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis } from 'recharts';
 import { Activity, FileText, CheckCircle, Zap, TrendingUp, Users } from 'lucide-react';
+import { api } from '../api';
 
 const COLORS = ['#C62828', '#1A237E', '#0288D1', '#00796B', '#F57C00', '#673AB7', '#E91E63', '#4CAF50'];
 
 export default function Dashboard() {
     const [procedures, setProcedures] = useState([]);
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
-            .then(r => r.json())
-            .then(data => { setProcedures(data); setLoading(false); })
-            .catch(console.error);
+        api.getProcedures().then(setProcedures);
     }, []);
 
 

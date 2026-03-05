@@ -4,6 +4,8 @@ import { Search, FileText, Filter } from 'lucide-react';
 import TramiteCard from '../components/TramiteCard';
 import SkeletonCard from '../components/SkeletonCard';
 
+import { api } from '../api';
+
 export default function Buscar() {
     const [procedures, setProcedures] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -15,10 +17,10 @@ export default function Buscar() {
     const quickFilter = searchParams.get('f') || '';
 
     useEffect(() => {
-        fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`)
-            .then(r => r.json())
-            .then(data => { setProcedures(data); setLoading(false); })
-            .catch(console.error);
+        api.getProcedures().then(data => {
+            setProcedures(data);
+            setLoading(false);
+        });
     }, []);
 
     const categories = useMemo(() => {
@@ -159,10 +161,27 @@ export default function Buscar() {
                     </div>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="empty-state">
-                    <FileText size={64} style={{ color: 'var(--border)' }} />
-                    <h3>No se encontraron resultados</h3>
-                    <p>Intenta con otros términos de búsqueda o selecciona otra categoría temática.</p>
+                <div className="empty-state animate-fade-up">
+                    <div className="empty-icon-ring">
+                        <FileText size={48} />
+                    </div>
+                    <h3>No encontramos coincidencias</h3>
+                    <p>Intenta con términos más generales o revisa la ortografía. También puedes explorar las categorías principales.</p>
+
+                    <div className="empty-suggestions">
+                        <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-muted)' }}>Búsquedas frecuentes:</span>
+                        <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap', justifyContent: 'center', marginTop: '1rem' }}>
+                            {['Licencia de Funcionamiento', 'Matrimonio', 'Edificación', 'Partida de Nacimiento'].map(s => (
+                                <button
+                                    key={s}
+                                    className="suggestion-tag"
+                                    onClick={() => updateSearch(s)}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             ) : (
                 <div className="container" style={{ padding: 0 }}>
