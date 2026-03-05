@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, FileText, CheckCircle, Clock, MapPin, AlertCircle, Scale, Building2, Home, Printer, Mail, Phone, Share2, Copy, Check, DollarSign, ClipboardList, Tag, ThumbsUp, ThumbsDown, Languages } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import PDFPreview from '../components/PDFPreview';
 
 const categoryImages = {
     'Licencias de Edificación': 'https://images.unsplash.com/photo-1541888086425-d81bb19240f5?auto=format&fit=crop&q=80&w=1200&h=400',
@@ -399,26 +398,36 @@ export default function DetalleTramite() {
 
                             <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-                                { }
                                 {proc.pdf_referencia_imagen && !imgError ? (
                                     <a
-                                        href={proc.pdf_referencia_imagen}
+                                        href={`${import.meta.env.BASE_URL}${proc.pdf_referencia_imagen.replace(/^\//, '')}`}
                                         title="Haz clic para ampliar la captura"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={{ flex: '1 1 300px', maxWidth: '400px', display: 'block', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--shadow-sm)', cursor: 'zoom-in', background: '#f5f5f5' }}
                                     >
                                         <img
-                                            src={proc.pdf_referencia_imagen}
+                                            src={`${import.meta.env.BASE_URL}${proc.pdf_referencia_imagen.replace(/^\//, '')}`}
                                             alt={`Página ${proc.pdf_pagina} del TUPA`}
                                             style={{ width: '100%', display: 'block' }}
                                             onError={() => setImgError(true)}
                                         />
                                     </a>
                                 ) : (
-                                    <PDFPreview page={proc.pdf_pagina} />
+                                    <div style={{
+                                        flex: '1 1 300px', maxWidth: '400px',
+                                        background: '#f8f9fa', borderRadius: '8px',
+                                        border: '1px solid #e0e4e8', padding: '2rem',
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                        justifyContent: 'center', gap: '0.8rem', color: '#888',
+                                        minHeight: '200px'
+                                    }}>
+                                        <FileText size={40} style={{ opacity: 0.3 }} />
+                                        <span style={{ fontSize: '0.85rem', textAlign: 'center' }}>
+                                            Vista previa no disponible.<br />Usa el botón para ver el PDF oficial.
+                                        </span>
+                                    </div>
                                 )}
-
                                 { }
                                 <div style={{ flex: '1 1 250px', display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'flex-start' }}>
                                     <a
