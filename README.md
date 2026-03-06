@@ -102,3 +102,4 @@ tupa-portal/
 ## 📄 Licencia
 
 Proyecto de desarrollo institucional — Municipalidad Distrital de Nuevo Chimbote, Perú.
+"# TUPA-NV-CHIMBOTE" 
