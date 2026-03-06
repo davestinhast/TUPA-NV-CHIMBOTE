@@ -148,14 +148,13 @@ export default function Admin() {
                     <div className="login-brand-icon"><Landmark size={32} /></div>
                     <h1>Panelsito</h1>
                     <div style={{ marginTop: '-0.5rem', marginBottom: '1rem', opacity: 0.7, fontWeight: 700 }}>XD</div>
-                    <p>Acceso restringido de nivel administrador</p>
                     <form onSubmit={handleLogin}>
                         <div className="admin-input-group">
-                            <label>Usuario Maestro</label>
+                            <label>USER</label>
                             <input type="text" value={username} onChange={e => setUsername(e.target.value)} placeholder="ADMIN" required />
                         </div>
                         <div className="admin-input-group">
-                            <label>Clave de Seguridad</label>
+                            <label>CONTRA</label>
                             <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
                         </div>
                         <button type="submit" className="admin-btn-login">
