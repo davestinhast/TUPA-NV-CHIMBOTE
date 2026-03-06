@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, ChevronRight, ExternalLink, HelpCircle } from 'lucide-react';
 import LogoTupa from './LogoTupa';
@@ -6,14 +7,23 @@ export default function Header() {
     const location = useLocation();
     const isHome = location.pathname === '/';
     const isBuscar = location.pathname === '/buscar';
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <header className="site-header">
+        <header className={`site-header ${scrolled ? 'scrolled' : ''}`}>
 
             { }
             <div className="header-top">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-                    <span>🇵🇪 Plataforma Digital Oficial del Estado Peruano</span>
+                    <span>📍 Municipalidad Distrital de Nuevo Chimbote</span>
                     <span style={{ opacity: 0.5 }}>|</span>
                     <a
                         href="https://www.muninuevochimbote.gob.pe"

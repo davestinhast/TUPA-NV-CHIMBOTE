@@ -6,7 +6,6 @@ const path = require('path');
 
 const raw = fs.readFileSync('C:\\Users\\daves\\.gemini\\antigravity\\brain\\2137c4a5-a98d-4885-9050-debd67d4412a\\tupa_raw_text.txt', 'utf-8');
 
-// Categories from the index (pages 5-18)
 const categoryMap = {
     'Transparencia y acceso a la información': ['PE123299E43'],
     'Recursos y denuncias': ['PA4070E914', 'PA40702804', 'PA40701A33', 'PA40704EE6'],
@@ -29,7 +28,6 @@ const categoryMap = {
     'Servicios exclusivos - Otros': ['PA4070E87C', 'PA40709ED6', 'PA4070DCFE', 'PA4070FE3D', 'PA4070BA26', 'PA4070BC69', 'PA4070DE93', 'PA40704C0B', 'PA40706B97', 'PA4070F1E4'],
 };
 
-// Split raw text by page markers, capturing page number
 const parts = raw.split(/---\s*P[^\d]+(\d+)\s*---/);
 const pagesInfo = [];
 for (let i = 1; i < parts.length; i += 2) {
@@ -40,7 +38,6 @@ for (let i = 1; i < parts.length; i += 2) {
     }
 }
 
-// Find all procedure blocks by looking for "Código:" pattern
 const procedures = [];
 let currentProc = null;
 
@@ -48,12 +45,10 @@ for (let i = 0; i < pagesInfo.length; i++) {
     const pageInfo = pagesInfo[i];
     const page = pageInfo.text;
 
-    // Check for procedure header
     const codeMatch = page.match(/Código:\s*([A-Z0-9]+)/);
     const nameMatch = page.match(/Denominación del Procedimiento Administrativo\s*"([^"]+)"/);
 
     if (codeMatch && nameMatch) {
-        // Save previous procedure
         if (currentProc) {
             procedures.push(finalize(currentProc));
         }
@@ -65,12 +60,10 @@ for (let i = 0; i < pagesInfo.length; i++) {
             rawPages: [page],
         };
     } else if (currentProc) {
-        // Continuation page for current procedure
         currentProc.rawPages.push(page);
     }
 }
 
-// Don't forget last procedure
 if (currentProc) {
     procedures.push(finalize(currentProc));
 }
@@ -117,7 +110,6 @@ function findCategory(codigo, nombre) {
 
 function extractRequirements(text) {
     const reqs = [];
-    // Find numbered requirements like "1.-" or "1."
     const reqMatches = text.match(/\d+\.-\s*[^\.][^\n]+/g);
     if (reqMatches) {
         reqMatches.forEach(r => {
@@ -153,7 +145,6 @@ function extractCalificacion(text) {
 }
 
 function extractUnidad(text) {
-    // Look for common patterns: OFICINA DE X, GERENCIA DE X, SUB GERENCIA DE X, SECRETARIA X
     const patterns = [
         /(?:SUB\s*GERENCIA\s+DE\s+[A-ZÁÉÍÓÚÑ\s,]+)/,
         /(?:GERENCIA\s+DE\s+[A-ZÁÉÍÓÚÑ\s,]+)/,
@@ -164,7 +155,6 @@ function extractUnidad(text) {
     for (const pat of patterns) {
         const m = text.match(pat);
         if (m) {
-            // Clean up and limit length
             let name = m[0].trim()
                 .replace(/\s+/g, ' ')
                 .replace(/\s*Teléfono.*$/i, '')
@@ -193,7 +183,6 @@ function extractDescription(text) {
         }
     }
 
-    // Fallback if no specific trigger word
     const fallback = text.match(/Denominación del Procedimiento Administrativo.*?"(?:[^"]+)"([\s\S]*?)(?=\s+Requisitos\s+1\.-|\s+Requisitos\s+1\.|\s+Condiciones|\s+Base Legal|\s+Formularios\s+Canales|\s+Notas:\s+1\.-|\s+Procedimiento administrativo mediante|$)/i);
     if (fallback && fallback[1].trim().length > 30) {
         let clean = fallback[1].trim().replace(/\s+/g, ' ');
@@ -248,7 +237,6 @@ function extractNotas(text) {
 function finalize(proc) {
     let fullText = proc.rawPages.join(' ');
 
-    // Clean institutional pdf headers and footers
     fullText = fullText.replace(/Lima,\s*[a-z]+\s*\d+\s*de\s*[a-z]+\s*de\s*\d+\s*NORMAS\s*LEGALES\s*\d+\s*Op\.\s*[\d\-]+/gi, ' ');
     fullText = fullText.replace(/Plataforma Digital Oficial.*?Municipalidad Distrital de Nuevo Chimbote/gi, ' ');
     fullText = fullText.replace(/Portal TUPA Digital/gi, ' ');
@@ -279,11 +267,9 @@ function finalize(proc) {
     };
 }
 
-// Ensure public/data directory exists
 const outputDir = path.join(__dirname, 'public', 'data');
 fs.mkdirSync(outputDir, { recursive: true });
 
-// Write JSON
 fs.writeFileSync(
     path.join(outputDir, 'procedimientos.json'),
     JSON.stringify(procedures, null, 2),
@@ -292,7 +278,6 @@ fs.writeFileSync(
 
 console.log(`✅ Extracted ${procedures.length} procedures`);
 
-// Print category distribution
 const catCount = {};
 procedures.forEach(p => {
     catCount[p.categoria] = (catCount[p.categoria] || 0) + 1;

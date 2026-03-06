@@ -5,78 +5,58 @@ export default function LogoTupa({ className = '', style = {} }) {
             style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '12px',
+                gap: '16px',
                 ...style
             }}
         >
-            {}
-            <svg
-                width="42"
-                height="48"
-                viewBox="0 0 42 48"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{ flexShrink: 0 }}
-            >
-                {}
-                <path opacity="0.1" d="M21 48L3 38V12L21 2L39 12V38L21 48Z" fill="var(--primary)" />
+            { }
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <img
+                    src={`${import.meta.env.BASE_URL}escudo-chimbote.png`}
+                    alt="Escudo de Nuevo Chimbote"
+                    style={{
+                        height: '52px',
+                        width: 'auto',
+                        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+                    }}
+                />
+            </div>
 
-                {}
-                <path d="M21 45L6 36.6667V13.3333L21 5L36 13.3333V36.6667L21 45Z" fill="var(--secondary)" />
-
-                {}
-                <path d="M21 5V25L6 16.6667V13.3333L21 5Z" fill="#E2E8F0" />
-
-                {}
-                <path d="M21 5V25L36 16.6667V13.3333L21 5Z" fill="var(--primary)" />
-
-                {}
-                <rect x="15" y="19" width="12" height="2" rx="1" fill="white" />
-                <rect x="15" y="24" width="8" height="2" rx="1" fill="white" />
-                <rect x="15" y="29" width="12" height="2" rx="1" fill="white" />
-
-                {}
-                <rect x="25" y="24" width="2" height="2" rx="0.5" fill="var(--primary-light)" />
-            </svg>
-
-            {}
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            { }
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', lineHeight: 1.1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
                     <span
                         style={{
-                            fontSize: '1.75rem',
+                            fontSize: '1.65rem',
                             fontWeight: 900,
                             color: 'var(--secondary)',
                             letterSpacing: '-0.02em',
-                            fontFamily: "'Inter', sans-serif"
                         }}
                     >
                         TUPA
                     </span>
                     <span
                         style={{
-                            fontSize: '1.75rem',
+                            fontSize: '1.65rem',
                             fontWeight: 300,
                             color: 'var(--primary)',
-                            letterSpacing: '0.02em',
-                            fontFamily: "'Inter', sans-serif"
+                            letterSpacing: '0.01em',
                         }}
                     >
                         DIGITAL
                     </span>
                 </div>
 
-                {}
-                <div style={{ width: '100%', height: '1px', background: 'linear-gradient(90deg, var(--border) 0%, transparent 100%)', margin: '4px 0 3px 0' }}></div>
+                <div style={{ width: '100%', height: '2px', background: 'var(--primary)', margin: '2px 0 4px 0', opacity: 0.8 }}></div>
 
                 <span
                     style={{
-                        fontSize: '0.62rem',
-                        fontWeight: 600,
-                        color: 'var(--text-muted)',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        color: 'var(--text)',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.08em',
-                        fontFamily: "'Inter', sans-serif"
+                        letterSpacing: '0.05em',
+                        maxWidth: '220px'
                     }}
                 >
                     Municipalidad de Nuevo Chimbote

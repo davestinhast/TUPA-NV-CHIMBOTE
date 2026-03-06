@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Search, FileText, Building2, Scale, Truck, TreePine, ShieldCheck, Hammer, Map, Landmark, Users, BookOpen, Dog, Receipt, ClipboardList, Megaphone, AlertTriangle, Eye, ArrowRight, CheckCircle2, CopyPlus, BarChart3, ShieldEllipsis, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import AnimatedPage from '../components/AnimatedPage';
+import { Search, FileText, Building2, Scale, Truck, TreePine, ShieldCheck, Hammer, Map, Landmark, Users, BookOpen, Dog, Receipt, ClipboardList, Megaphone, AlertTriangle, Eye, ArrowRight, CheckCircle2, CopyPlus, BarChart3, ShieldEllipsis, Info, ChevronRight } from 'lucide-react';
 
 const CATEGORY_ICONS = {
     'Transparencia y Acceso a la Información': Eye,
@@ -84,7 +86,6 @@ export default function Inicio() {
         e.preventDefault();
         const rawTerm = searchTerm.trim();
         if (rawTerm) {
-            // Aplicar mapeo semántico para "suponer" la intención
             const smartTerm = mapIntent(rawTerm);
             navigate(`/buscar?q=${encodeURIComponent(smartTerm)}&original=${encodeURIComponent(rawTerm)}`);
         } else {
@@ -93,32 +94,33 @@ export default function Inicio() {
     };
 
     return (
-        <>
+        <AnimatedPage>
             <section className="hero" style={{
-                backgroundImage: `linear-gradient(160deg, rgba(13,38,68,0.65) 0%, rgba(100,15,15,0.55) 100%), url(${import.meta.env.BASE_URL}hero-chimbote.jpg)`
+                backgroundImage: `linear-gradient(135deg, rgba(11,12,12,0.85) 0%, rgba(19,99,208,0.4) 100%), url(${import.meta.env.BASE_URL}hero-chimbote.jpg)`
             }}>
                 <div className="hero-content">
                     <div className="hero-lockup animate-fade-up">
                         <div style={{
-                            width: '130px',
-                            height: '130px',
+                            width: '140px',
+                            height: '140px',
                             background: 'white',
-                            borderRadius: '20px',
+                            borderRadius: '12px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            boxShadow: '0 4px 24px rgba(0,0,0,0.45)',
-                            overflow: 'hidden',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                            padding: '12px',
+                            position: 'relative',
+                            overflow: 'hidden'
                         }}>
                             <img
-                                src={`${import.meta.env.BASE_URL}tupa-icon.png`}
-                                alt="Ícono TUPA Digital"
+                                src={`${import.meta.env.BASE_URL}escudo-chimbote.png`}
+                                alt="Escudo de Nuevo Chimbote"
                                 style={{
-                                    width: '200%',
-                                    height: '200%',
+                                    width: '100%',
+                                    height: '100%',
                                     objectFit: 'contain',
-                                    transform: 'scale(1.8)',
                                 }}
                             />
                         </div>
@@ -127,23 +129,85 @@ export default function Inicio() {
                                 <span className="hero-lockup-tupa">TUPA</span>
                                 <span className="hero-lockup-digital">DIGITAL</span>
                             </div>
-                            <div className="hero-lockup-divider" />
-                            <span className="hero-lockup-sub">Municipalidad Distrital de Nuevo Chimbote</span>
+                            <div className="hero-lockup-divider" style={{ background: 'var(--primary)', height: '4px', margin: '0.4rem 0' }} />
+                            <span className="hero-lockup-sub">
+                                MUNICIPALIDAD DE NUEVO CHIMBOTE
+                            </span>
                         </div>
                     </div>
 
-                    <p className="hero-subtitle animate-fade-up" style={{ animationDelay: '0.2s' }}>
+                    <p className="hero-subtitle animate-fade-up" style={{
+                        animationDelay: '0.2s',
+                        fontSize: '1.25rem',
+                        fontWeight: 500,
+                        textShadow: '0 1px 4px rgba(0,0,0,0.8)',
+                        maxWidth: '800px',
+                        background: 'rgba(0,0,0,0.2)',
+                        padding: '1rem',
+                        borderRadius: '8px',
+                        backdropFilter: 'blur(4px)'
+                    }}>
                         Directorio oficial de trámites y servicios de la Municipalidad Distrital de Nuevo Chimbote.
-                        Consulta requisitos, costos y plazos de manera rápida, transparente y 100% digital.
+                        Consulta requisitos, costos y plazos de manera rápida y transparente.
                     </p>
-                    <form className="hero-search animate-fade-up" style={{ animationDelay: '0.4s' }} onSubmit={handleSearch}>
-                        <Search className="search-icon" size={22} strokeWidth={2.5} />
-                        <input
-                            type="text"
-                            placeholder="Escribe el nombre del trámite o código (Ej. Licencia de Edificación)..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
+                    <form
+                        className="hero-search-enhanced animate-fade-up"
+                        style={{
+                            animationDelay: '0.4s',
+                            width: '100%',
+                            maxWidth: '750px',
+                            background: 'white',
+                            borderRadius: '12px',
+                            padding: '6px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            boxShadow: '0 10px 40px rgba(0,0,0,0.4)',
+                            border: '1px solid rgba(255,255,255,0.3)'
+                        }}
+                        onSubmit={handleSearch}
+                    >
+                        <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <Search className="search-icon" size={24} strokeWidth={2.5} style={{ position: 'absolute', left: '1.2rem', color: 'var(--text-muted)' }} />
+                            <input
+                                type="text"
+                                placeholder="¿Qué trámite buscas? (Ej: Licencia, Matrimonio, Arbitrios...)"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{
+                                    fontSize: '1.2rem',
+                                    padding: '1.2rem 1rem 1.2rem 4rem',
+                                    width: '100%',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: 'var(--text)',
+                                    fontWeight: 500
+                                }}
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            style={{
+                                background: 'var(--primary)',
+                                color: 'white',
+                                border: 'none',
+                                padding: '1rem 2.5rem',
+                                borderRadius: '8px',
+                                fontWeight: 800,
+                                fontSize: '1.05rem',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'var(--primary-dark)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'var(--primary)'}
+                        >
+                            <span>Buscar</span>
+                            <ChevronRight size={20} strokeWidth={3} />
+                        </button>
                     </form>
 
                     <div className="hero-stats animate-fade-up" style={{ animationDelay: '0.6s' }}>
@@ -176,29 +240,47 @@ export default function Inicio() {
                 <div className="container">
                     <h2 className="section-title animate-fade-up">Explorar Categorías</h2>
                     <p className="section-subtitle animate-fade-up" style={{ animationDelay: '0.1s' }}>Selecciona un área para ver sus procedimientos disponibles</p>
-                    <div className="categories-grid">
+                    <motion.div
+                        className="categories-grid"
+                        initial="hidden"
+                        animate="show"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: {
+                                opacity: 1,
+                                transition: {
+                                    staggerChildren: 0.05
+                                }
+                            }
+                        }}
+                    >
                         {categories.map(([cat, count], idx) => {
                             const Icon = CATEGORY_ICONS[cat] || FileText;
-                            const delay = Math.min((idx * 0.05), 0.8) + 's';
                             return (
-                                <Link
+                                <motion.div
                                     key={cat}
-                                    to={`/buscar?categoria=${encodeURIComponent(cat)}`}
-                                    className="animate-fade-up"
-                                    style={{ textDecoration: 'none', animationDelay: delay, animationFillMode: 'both' }}
+                                    variants={{
+                                        hidden: { opacity: 0, y: 20 },
+                                        show: { opacity: 1, y: 0 }
+                                    }}
                                 >
-                                    <div className="category-card">
-                                        <div className="cat-icon"><Icon size={24} strokeWidth={2} /></div>
-                                        <h3>{cat}</h3>
-                                        <div className="cat-count">
-                                            <FileText size={14} /> {count} trámite{count !== 1 ? 's' : ''}
+                                    <Link
+                                        to={`/buscar?categoria=${encodeURIComponent(cat)}`}
+                                        style={{ textDecoration: 'none' }}
+                                    >
+                                        <div className="category-card">
+                                            <div className="cat-icon"><Icon size={24} strokeWidth={2} /></div>
+                                            <h3>{cat}</h3>
+                                            <div className="cat-count">
+                                                <FileText size={14} /> {count} trámite{count !== 1 ? 's' : ''}
+                                            </div>
+                                            <div className="cat-link">Ver trámites <ArrowRight size={16} strokeWidth={2.5} /></div>
                                         </div>
-                                        <div className="cat-link">Ver trámites <ArrowRight size={16} strokeWidth={2.5} /></div>
-                                    </div>
-                                </Link>
+                                    </Link>
+                                </motion.div>
                             );
                         })}
-                    </div>
+                    </motion.div>
                 </div>
             </section>
             <section className="transparency-section">
@@ -273,6 +355,6 @@ export default function Inicio() {
                     </div>
                 </div>
             </section>
-        </>
+        </AnimatedPage>
     );
 }

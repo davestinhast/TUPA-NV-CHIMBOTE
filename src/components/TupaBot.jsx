@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Bot, User, ArrowRight, Minimize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { mapIntent } from '../utils/intentMapper';
+import { askAnita } from '../utils/geminiService';
 
 const FLOWS = {
     ROOT: {
@@ -74,6 +75,7 @@ export default function TupaBot() {
     const [messages, setMessages] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
     const [inputValue, setInputValue] = useState('');
+    const [hasNotification, setHasNotification] = useState(false);
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
 
@@ -81,8 +83,36 @@ export default function TupaBot() {
     useEffect(() => {
         if (isOpen && messages.length === 0) {
             triggerFlow('ROOT');
+            setHasNotification(false);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (!isOpen) {
+                setHasNotification(true);
+            }
+        }, 4000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages, isTyping]);
+
+    const playSendSound = () => {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => { });
+    };
+
+    const playReceiveSound = () => {
+        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(() => { });
+    };
 
     const triggerFlow = (flowKey) => {
         const flow = FLOWS[flowKey];
@@ -94,11 +124,13 @@ export default function TupaBot() {
             options: flow.options
         };
         setMessages(prev => [...prev, newMsg]);
+        if (flowKey !== 'ROOT') playReceiveSound();
     };
 
-    const handleSend = (text) => {
+    const handleSend = async (text) => {
         if (!text.trim()) return;
 
+        playSendSound();
         const userMsg = {
             id: Date.now(),
             text: text,
@@ -109,21 +141,42 @@ export default function TupaBot() {
         setInputValue('');
         setIsTyping(true);
 
-        setTimeout(() => {
-            setIsTyping(false);
+        try {
+            let aiResponse = await askAnita(text);
             const smartQuery = mapIntent(text);
+
+            const navMatch = aiResponse.match(/\[NAVIGATE:(.*?)\]/);
+            let cleanResponse = aiResponse.replace(/\[NAVIGATE:.*?\]/g, '').trim();
+
+            setIsTyping(false);
+            playReceiveSound();
 
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: `He entendido tu necesidad. Para "${text}", aquí tienes lo que he encontrado en nuestro sistema:`,
+                text: cleanResponse || aiResponse,
                 sender: 'bot',
                 timestamp: new Date(),
                 action: {
-                    link: `/buscar?q=${encodeURIComponent(smartQuery)}&original=${encodeURIComponent(text)}`,
+                    link: navMatch ? navMatch[1] : `/buscar?q=${encodeURIComponent(smartQuery)}&original=${encodeURIComponent(text)}`,
                     text: 'Ver Resultados'
                 }
             }]);
-        }, 1200);
+
+            if (navMatch) {
+                setTimeout(() => {
+                    navigate(navMatch[1]);
+                }, 1500);
+            }
+
+        } catch (error) {
+            setIsTyping(false);
+            setMessages(prev => [...prev, {
+                id: Date.now() + 1,
+                text: "Disculpa vecino, tuve un problema al procesar tu pregunta. Por favor intenta buscar arriba su trámite.",
+                sender: 'bot',
+                timestamp: new Date()
+            }]);
+        }
     };
 
     const handleOptionClick = (option) => {
@@ -155,14 +208,17 @@ export default function TupaBot() {
             { }
             {!isOpen && (
                 <button
-                    className="bot-fab"
-                    onClick={() => setIsOpen(true)}
+                    className={`bot-fab ${hasNotification ? 'has-notification' : ''}`}
+                    onClick={() => {
+                        setIsOpen(true);
+                        setHasNotification(false);
+                    }}
                     aria-label="Abrir asistente virtual"
                 >
                     <div className="bot-fab-icon">
                         <MessageSquare size={24} />
                     </div>
-                    <span className="bot-fab-tooltip">¿Te ayudo a buscar?</span>
+                    <span className="bot-fab-tooltip">{hasNotification ? '¡Hola! ¿Necesitas ayuda?' : '¿Te ayudo a buscar?'}</span>
                     <span className="bot-online-indicator"></span>
                 </button>
             )}
@@ -200,7 +256,7 @@ export default function TupaBot() {
                             )}
                             <div className="message-content">
                                 <div className={`message-bubble ${msg.sender}`}>
-                                    {msg.text}
+                                    <FormatMessage text={msg.text} />
                                 </div>
                                 <div className="message-time">{formatTime(msg.timestamp)}</div>
 
@@ -282,5 +338,64 @@ export default function TupaBot() {
 
             </div>
         </>
+    );
+}
+
+function FormatMessage({ text }) {
+    if (!text) return null;
+
+    const lines = text.split('\n');
+
+    return (
+        <div className="formatted-message">
+            {lines.map((line, i) => {
+                let content = line;
+
+                const boldRegex = /\*\*(.*?)\*\*/g;
+                const parts = [];
+                let currIndex = 0;
+                let match;
+
+                while ((match = boldRegex.exec(line)) !== null) {
+                    if (match.index > currIndex) {
+                        parts.push(line.substring(currIndex, match.index));
+                    }
+                    parts.push(<strong key={match.index}>{match[1]}</strong>);
+                    currIndex = match.index + match[0].length;
+                }
+
+                if (currIndex < line.length) {
+                    parts.push(line.substring(currIndex));
+                }
+
+                const finalContent = parts.length > 0 ? parts : line;
+
+                if (line.trim().startsWith('*')) {
+                    const cleanLine = line.trim().substring(1).trim();
+                    const listParts = [];
+                    let lIndex = 0;
+                    let lMatch;
+                    while ((lMatch = boldRegex.exec(cleanLine)) !== null) {
+                        if (lMatch.index > lIndex) listParts.push(cleanLine.substring(lIndex, lMatch.index));
+                        listParts.push(<strong key={lMatch.index}>{lMatch[1]}</strong>);
+                        lIndex = lMatch.index + lMatch[0].length;
+                    }
+                    if (lIndex < cleanLine.length) listParts.push(cleanLine.substring(lIndex));
+
+                    return (
+                        <div key={i} className="bot-list-item">
+                            <span className="dot">•</span>
+                            <span>{listParts.length > 0 ? listParts : cleanLine}</span>
+                        </div>
+                    );
+                }
+
+                return (
+                    <p key={i} style={{ marginBottom: line.trim() === '' ? '0' : '8px', marginTop: 0 }}>
+                        {finalContent}
+                    </p>
+                );
+            })}
+        </div>
     );
 }

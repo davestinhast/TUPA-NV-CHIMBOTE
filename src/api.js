@@ -1,9 +1,7 @@
-// API configuration and service
 const API_BASE_URL = typeof process !== 'undefined' && process.env.VITE_API_URL
     ? process.env.VITE_API_URL
     : 'http://localhost:3000/api';
 
-// Transform backend data to match frontend consumption
 const normalizeProcedure = (p) => ({
     ...p,
     nombre: p.nombre_oficial || p.nombre,
@@ -15,12 +13,18 @@ const normalizeProcedure = (p) => ({
 export const api = {
     async getProcedures() {
         try {
-            // First try to fetch from local JSON as fallback (fast)
-            const localResponse = await fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`);
-            if (!localResponse.ok) throw new Error('Local JSON not found');
-            const localData = await localResponse.json();
+            const localSaved = localStorage.getItem('tupa_procedures_local');
+            if (localSaved) {
+                console.log("Cargando trámites desde el Panel de Admin (Local)");
+                return JSON.parse(localSaved);
+            }
 
-            // Then attempt to background-update from real server if available
+            const localResponse = await fetch(`${import.meta.env.BASE_URL}data/procedimientos.json`);
+            if (localResponse.ok) {
+                const localData = await localResponse.json();
+                return localData;
+            }
+
             try {
                 const apiResponse = await fetch(`${API_BASE_URL}/procedimientos?limit=500`);
                 if (apiResponse.ok) {
@@ -30,10 +34,10 @@ export const api = {
                     }
                 }
             } catch (err) {
-                console.warn('Backend API not reachable, using local data:', err.message);
+                console.warn('Servidor backend inalcanzable');
             }
 
-            return localData;
+            return [];
         } catch (error) {
             console.error('API Error:', error);
             return [];
@@ -41,13 +45,11 @@ export const api = {
     },
 
     async getProcedureBySlug(slug) {
-        // Fallback search logic if we only have the full list
         const all = await this.getProcedures();
         const found = all.find(p => p.slug === slug || p.codigo === slug || p.codigo_tupa === slug);
 
         if (found) return found;
 
-        // Try specific API call
         try {
             const response = await fetch(`${API_BASE_URL}/procedimientos/${slug}`);
             if (response.ok) {
