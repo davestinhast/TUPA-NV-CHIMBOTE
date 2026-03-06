@@ -55,6 +55,8 @@ function useCounter(end, duration = 1500) {
 
 import { api } from '../api';
 
+import { mapIntent } from '../utils/intentMapper';
+
 export default function Inicio() {
     const [procedures, setProcedures] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -80,8 +82,11 @@ export default function Inicio() {
 
     const handleSearch = (e) => {
         e.preventDefault();
-        if (searchTerm.trim()) {
-            navigate(`/buscar?q=${encodeURIComponent(searchTerm.trim())}`);
+        const rawTerm = searchTerm.trim();
+        if (rawTerm) {
+            // Aplicar mapeo semántico para "suponer" la intención
+            const smartTerm = mapIntent(rawTerm);
+            navigate(`/buscar?q=${encodeURIComponent(smartTerm)}&original=${encodeURIComponent(rawTerm)}`);
         } else {
             navigate('/buscar');
         }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, FileText, Filter } from 'lucide-react';
+import { Search, FileText, Filter, Bot } from 'lucide-react';
 import TramiteCard from '../components/TramiteCard';
 import SkeletonCard from '../components/SkeletonCard';
 
@@ -13,6 +13,7 @@ export default function Buscar() {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const query = searchParams.get('q') || '';
+    const original = searchParams.get('original') || '';
     const catFilter = searchParams.get('categoria') || '';
     const quickFilter = searchParams.get('f') || '';
 
@@ -146,9 +147,27 @@ export default function Buscar() {
                 <p className="results-info">
                     {showSkeletons ? 'Cargando trámites...' : (
                         <>
+                            {original && (
+                                <div style={{
+                                    background: '#e3f2fd',
+                                    padding: '0.8rem 1.2rem',
+                                    borderRadius: '12px',
+                                    marginBottom: '1rem',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.8rem',
+                                    color: '#0d47a1',
+                                    fontSize: '0.9rem',
+                                    border: '1px solid #bbdefb'
+                                }}>
+                                    <Bot size={18} />
+                                    <span>Entiendo que buscas trámites sobre: <strong>"{original}"</strong></span>
+                                </div>
+                            )}
+                            <br />
                             Se encontraron <strong style={{ color: 'var(--primary)' }}>{filtered.length}</strong> procedimientos
                             {catFilter && <> en <strong>{catFilter}</strong></>}
-                            {query && <> que coinciden con "<strong>{query}</strong>"</>}
+                            {query && !original && <> que coinciden con "<strong>{query}</strong>"</>}
                         </>
                     )}
                 </p>

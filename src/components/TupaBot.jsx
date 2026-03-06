@@ -1,129 +1,132 @@
 import { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Bot, User, ArrowRight, Minimize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { mapIntent } from '../utils/intentMapper';
+
+const FLOWS = {
+    ROOT: {
+        text: '¡Hola! Soy Anita, tu guía municipal. 😊 ¿En qué puedo ayudarte hoy?',
+        options: [
+            { label: '🏠 Construcción o Vivienda', next: 'CONSTRUCCION' },
+            { label: '🏢 Abrir o Regular un Negocio', next: 'NEGOCIO' },
+            { label: '💍 Trámites de Familia y Registro', next: 'FAMILIA' },
+            { label: '💰 Pagos y Deudas (Impuestos)', next: 'PAGOS' },
+            { label: '👮 Seguridad o Quejas', next: 'SEGURIDAD' },
+            { label: '👵 Soy un Adulto Mayor', next: 'ADULTOMAYOR' }
+        ]
+    },
+    CONSTRUCCION: {
+        text: '¡Entendido! Lo relacionado a tu casa está en el área de **Licencias de Edificación**. ¿Qué quieres hacer exactamente?',
+        options: [
+            { label: '🧱 Construir o remodelar mi casa', link: '/buscar?categoria=Licencias%20de%20Edificación&q=vivienda' },
+            { label: '🏗️ Construir segundo piso o ampliación', link: '/buscar?categoria=Licencias%20de%20Edificación&q=ampliación' },
+            { label: '🔨 Demoler algo o sacar desmonte', link: '/buscar?categoria=Licencias%20de%20Edificación&q=demolición' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    },
+    NEGOCIO: {
+        text: 'Para tu emprendimiento necesitas la **Licencia de Funcionamiento**. ¿Cuál es tu situación?',
+        options: [
+            { label: '🏪 Quiero abrir una bodega o tienda', link: '/buscar?categoria=Licencias%20de%20Funcionamiento&q=bodega' },
+            { label: '🍴 Quiero poner un restaurante', link: '/buscar?categoria=Licencias%20de%20Funcionamiento&q=restaurante' },
+            { label: '📢 Poner un letrero o publicidad', link: '/buscar?categoria=Publicidad%20Exterior' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    },
+    FAMILIA: {
+        text: 'El área de **Registro Civil** ve temas de familia. ¿Qué buscas hoy?',
+        options: [
+            { label: '💍 Casarme (Matrimonio Civil)', link: '/buscar?categoria=Registro%20Civil&q=matrimonio' },
+            { label: '👶 Partida de Nacimiento', link: '/buscar?categoria=Registro%20Civil&q=nacimiento' },
+            { label: '☦️ Fallecimiento/Cementerio', link: '/buscar?categoria=Registro%20Civil&q=fallecimiento' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    },
+    PAGOS: {
+        text: 'Puedes consultar y pagar tus deudas en **Tributación**. ¿Qué necesitas saber?',
+        options: [
+            { label: '💵 Pagar mis arbitrios o autovalúo', link: '/buscar?categoria=Tributación&f=predial' },
+            { label: '📝 Ver mis descuentos o amnistías', link: '/buscar?categoria=Tributación&q=beneficios' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    },
+    ADULTOMAYOR: {
+        text: '👵 ¡Qué gusto saludarte! Tenemos beneficios especiales para ti en impuestos y asesoría gratuita. ¿Te interesa alguno?',
+        options: [
+            { label: '📉 Descuento para pensionistas', link: '/buscar?categoria=Tributación&q=descuentos' },
+            { label: '🩺 Otros beneficios municipales', link: '/buscar?categoria=Otros%20Servicios' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    },
+    SEGURIDAD: {
+        text: '¿Deseas reportar algo o pedir permisos de seguridad?',
+        options: [
+            { label: '🛡️ Inspección Defensa Civil (ITSE)', link: '/buscar?categoria=Inspección%20Técnica%20de%20Seguridad%20(ITSE)' },
+            { label: '🔊 Reportar bulla o ruidos molestos', link: '/buscar?categoria=Fiscalización%20y%20Sanciones' },
+            { label: '📔 Libro de Reclamaciones', link: '/buscar?q=reclamación' },
+            { label: '⬅️ Volver al inicio', next: 'ROOT' }
+        ]
+    }
+};
 
 export default function TupaBot() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
     const [inputValue, setInputValue] = useState('');
-    const [botFlow, setBotFlow] = useState('IDLE');
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
 
 
     useEffect(() => {
         if (isOpen && messages.length === 0) {
-            setMessages([
-                {
-                    id: 1,
-                    text: '¡Hola! 👋 Soy Tupi, tu asistente virtual de la Municipalidad de Nuevo Chimbote.',
-                    sender: 'bot',
-                    timestamp: new Date()
-                },
-                {
-                    id: 2,
-                    text: '¿En qué te puedo ayudar hoy? Selecciona una opción rápida o escríbeme lo que buscas:',
-                    sender: 'bot',
-                    timestamp: new Date(),
-                    options: [
-                        { label: '🗣️ Asesoría Paso a Paso', query: 'FLUJO_ASESORIA' },
-                        { label: '🏢 Abrir un Negocio', query: 'Licencias de Funcionamiento' },
-                        { label: '🏗️ Permisos de Construcción', query: 'Licencias de Edificación' },
-                        { label: '🏛️ Tributación / Pagos', query: 'Tributación' }
-                    ]
-                }
-            ]);
+            triggerFlow('ROOT');
         }
-    }, [isOpen, messages.length]);
+    }, [isOpen]);
 
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const triggerFlow = (flowKey) => {
+        const flow = FLOWS[flowKey];
+        const newMsg = {
+            id: Date.now(),
+            text: flow.text,
+            sender: 'bot',
+            timestamp: new Date(),
+            options: flow.options
+        };
+        setMessages(prev => [...prev, newMsg]);
     };
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages, isTyping]);
 
     const handleSend = (text) => {
         if (!text.trim()) return;
 
-
-        const newUserMsg = {
+        const userMsg = {
             id: Date.now(),
             text: text,
             sender: 'user',
             timestamp: new Date()
         };
-        setMessages(prev => [...prev, newUserMsg]);
+        setMessages(prev => [...prev, userMsg]);
         setInputValue('');
         setIsTyping(true);
 
-
         setTimeout(() => {
             setIsTyping(false);
-
-            const lowerText = text.toLowerCase();
-            let responseText = '';
-            let actionLink = null;
-            let actionText = '';
-            let skipDefault = false;
-
-            if (botFlow === 'ASK_TYPE') {
-                if (lowerText.includes('natural') || lowerText.includes('persona')) {
-                    responseText = "Como ciudadano (Persona Natural), las consultas más frecuentes son sobre Matrimonios (Registro Civil), Pagos de Predial (Tributación) o Licencias de Edificación. ¿Sobre qué tema te gustaría consultar?";
-                    setBotFlow('IDLE');
-                    skipDefault = true;
-                } else if (lowerText.includes('empresa') || lowerText.includes('negocio') || lowerText.includes('jurídica')) {
-                    responseText = "Para negocios y empresas (Persona Jurídica), lo más solicitado son las Licencias de Funcionamiento y los Certificados de Defensa Civil (ITSE). ¿Cuál de los dos necesitas tramitar?";
-                    setBotFlow('IDLE');
-                    skipDefault = true;
-                } else {
-                    responseText = "No te entendí muy bien. Para guiarte mejor, responde: ¿Eres una Persona Natural o una Empresa?";
-                    skipDefault = true;
-                }
-            }
-
-            if (!skipDefault) {
-                if (lowerText.includes('asesoría') || lowerText.includes('paso a paso') || text === 'FLUJO_ASESORIA') {
-                    responseText = "¡Claro que sí! Para darte la mejor ruta, cuéntame: ¿Vas a realizar el trámite como Persona Natural (ciudadano) o como Empresa?";
-                    setBotFlow('ASK_TYPE');
-                } else if (lowerText.includes('negocio') || lowerText.includes('empresa') || lowerText.includes('licencia') || lowerText.includes('funcionamiento')) {
-                    responseText = 'Para abrir un negocio o empresa, necesitas revisar el área de Licencias de Funcionamiento. Allí encontrarás los requisitos.'
-                    actionLink = '/buscar?categoria=Licencias%20de%20Funcionamiento';
-                    actionText = 'Ver Licencias de Funcionamiento';
-                } else if (lowerText.includes('construir') || lowerText.includes('obra') || lowerText.includes('casa') || lowerText.includes('edificaci')) {
-                    responseText = 'Si vas a construir o modificar una vivienda, revisa el área de Licencias de Edificación.';
-                    actionLink = '/buscar?categoria=Licencias%20de%20Edificaci%C3%B3n';
-                    actionText = 'Ver Trámites de Edificación';
-                } else if (lowerText.includes('defensa civil') || lowerText.includes('itse')) {
-                    responseText = 'Los trámites de Defensa Civil (ITSE) son vitales para tu negocio. Revisa la sección correspondiente.';
-                    actionLink = '/buscar?categoria=Inspecci%C3%B3n%20T%C3%A9cnica%20de%20Seguridad%20(ITSE)';
-                    actionText = 'Ir a Defensa Civil (ITSE)';
-                } else if (lowerText.includes('pagar') || lowerText.includes('tributo') || lowerText.includes('impuesto') || lowerText.includes('predial')) {
-                    responseText = 'Los trámites relacionados a pagos, arbitrios e impuestos están en la sección de Tributación.';
-                    actionLink = '/buscar?categoria=Tributaci%C3%B3n';
-                    actionText = 'Ir a Tributación';
-                } else {
-                    responseText = `He buscado "${text}" en nuestro catálogo TUPA. Haz clic abajo para ver todos los resultados.`;
-                    actionLink = `/buscar?q=${encodeURIComponent(text)}`;
-                    actionText = `Buscar "${text}"`;
-                }
-            }
+            const smartQuery = mapIntent(text);
 
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: responseText,
+                text: `He entendido tu necesidad. Para "${text}", aquí tienes lo que he encontrado en nuestro sistema:`,
                 sender: 'bot',
                 timestamp: new Date(),
-                action: actionLink ? { link: actionLink, text: actionText } : undefined
+                action: {
+                    link: `/buscar?q=${encodeURIComponent(smartQuery)}&original=${encodeURIComponent(text)}`,
+                    text: 'Ver Resultados'
+                }
             }]);
         }, 1200);
     };
 
     const handleOptionClick = (option) => {
-
         setMessages(prev => [...prev, {
             id: Date.now(),
             text: option.label,
@@ -131,30 +134,16 @@ export default function TupaBot() {
             timestamp: new Date()
         }]);
 
-        if (option.query === 'FLUJO_ASESORIA') {
-            handleSend('FLUJO_ASESORIA');
-            return;
-        }
-
-        setIsTyping(true);
-
-
-        setTimeout(() => {
-            setIsTyping(false);
-            setMessages(prev => [...prev, {
-                id: Date.now() + 1,
-                text: '¡Excelente! Te llevaré a esa sección ahora mismo.',
-                sender: 'bot',
-                timestamp: new Date()
-            }]);
-
-
+        if (option.next) {
+            setIsTyping(true);
             setTimeout(() => {
-                navigate(`/buscar?categoria=${encodeURIComponent(option.query)}`);
-                setIsOpen(false);
-            }, 1500);
-
-        }, 1000);
+                setIsTyping(false);
+                triggerFlow(option.next);
+            }, 600);
+        } else if (option.link) {
+            navigate(option.link);
+            setIsOpen(false);
+        }
     };
 
     const formatTime = (date) => {
