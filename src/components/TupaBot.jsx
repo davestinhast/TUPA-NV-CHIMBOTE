@@ -6,7 +6,7 @@ import { askAnita } from '../utils/geminiService';
 
 const FLOWS = {
     ROOT: {
-        text: '¡Hola! Soy Anita, tu guía municipal. 😊 ¿En qué puedo ayudarte hoy?',
+        text: '¡Hola, vecino/a! Soy Anita, tu asistente municipal. 🤖 Estoy aquí para facilitarte cualquier trámite en Nuevo Chimbote. ¿En qué puedo orientarte hoy?',
         options: [
             { label: '🏠 Construcción o Vivienda', next: 'CONSTRUCCION' },
             { label: '🏢 Abrir o Regular un Negocio', next: 'NEGOCIO' },
