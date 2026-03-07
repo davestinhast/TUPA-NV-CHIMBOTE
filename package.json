@@ -15,6 +15,7 @@
     "vite-plugin-pwa": "^1.2.0"
   },
   "dependencies": {
+    "@xenova/transformers": "^2.17.2",
     "decomment": "^0.9.5",
     "framer-motion": "^12.34.5",
     "lucide-react": "^0.576.0",

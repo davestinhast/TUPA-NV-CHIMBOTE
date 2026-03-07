@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Bot, User, ArrowRight, Minimize2 } from 'lucide-react';
+import { MessageSquare, Send, Bot, ArrowRight, Minimize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { mapIntent } from '../utils/intentMapper';
-import { askAnita } from '../utils/geminiService';
+import { api } from '../api';
+import { embedText } from '../utils/embedder';
+import { searchByEmbedding, searchFallback, expandQuery } from '../utils/semanticSearch';
+import { buildResponse } from '../utils/botResponder';
 
+// ✅ FLOWS fuera del componente
 const FLOWS = {
     ROOT: {
         text: '¡Hola, vecino/a! Soy Anita, tu asistente municipal. 🤖 Estoy aquí para facilitarte cualquier trámite en Nuevo Chimbote. ¿En qué puedo orientarte hoy?',
@@ -71,14 +75,29 @@ const FLOWS = {
 };
 
 export default function TupaBot() {
+    // ✅ TODOS los estados DENTRO del componente
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState([]);
     const [isTyping, setIsTyping] = useState(false);
     const [inputValue, setInputValue] = useState('');
     const [hasNotification, setHasNotification] = useState(false);
+    const [procedures, setProcedures] = useState([]);
+    const [modelReady, setModelReady] = useState(false);
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
 
+    // ✅ TODOS los useEffect DENTRO del componente
+    useEffect(() => {
+        api.getProcedures().then(setProcedures);
+    }, []);
+
+    useEffect(() => {
+        if (isOpen && !modelReady) {
+            import('../utils/embedder').then(({ getEmbedder }) => {
+                getEmbedder().then(() => setModelReady(true));
+            });
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen && messages.length === 0) {
@@ -89,9 +108,7 @@ export default function TupaBot() {
 
     useEffect(() => {
         const timer = setTimeout(() => {
-            if (!isOpen) {
-                setHasNotification(true);
-            }
+            if (!isOpen) setHasNotification(true);
         }, 4000);
         return () => clearTimeout(timer);
     }, []);
@@ -105,13 +122,13 @@ export default function TupaBot() {
     const playSendSound = () => {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3');
         audio.volume = 0.5;
-        audio.play().catch(() => { });
+        audio.play().catch(() => {});
     };
 
     const playReceiveSound = () => {
         const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
         audio.volume = 0.5;
-        audio.play().catch(() => { });
+        audio.play().catch(() => {});
     };
 
     const triggerFlow = (flowKey) => {
@@ -131,50 +148,59 @@ export default function TupaBot() {
         if (!text.trim()) return;
 
         playSendSound();
-        const userMsg = {
+        setMessages(prev => [...prev, {
             id: Date.now(),
-            text: text,
+            text,
             sender: 'user',
             timestamp: new Date()
-        };
-        setMessages(prev => [...prev, userMsg]);
+        }]);
         setInputValue('');
         setIsTyping(true);
 
         try {
-            let aiResponse = await askAnita(text);
-            const smartQuery = mapIntent(text);
+            let relevantProcs = [];
 
-            const navMatch = aiResponse.match(/\[NAVIGATE:(.*?)\]/);
-            let cleanResponse = aiResponse.replace(/\[NAVIGATE:.*?\]/g, '').trim();
+            if (modelReady && procedures.length > 0) {
+                const expanded = expandQuery(text);
+                const queryVec = await embedText(expanded);
+                relevantProcs = await searchByEmbedding(queryVec, procedures, 3);
+            } else if (procedures.length > 0) {
+                relevantProcs = await searchFallback(text, procedures, 3);
+            }
+
+            const { text: botText, procs } = buildResponse(text, relevantProcs);
 
             setIsTyping(false);
             playReceiveSound();
 
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: cleanResponse || aiResponse,
+                text: botText,
                 sender: 'bot',
                 timestamp: new Date(),
-                action: {
-                    link: navMatch ? navMatch[1] : `/buscar?q=${encodeURIComponent(smartQuery)}&original=${encodeURIComponent(text)}`,
-                    text: 'Ver Resultados'
-                }
+                options: procs.length > 0 ? [
+                    ...procs.map(p => ({
+                        label: `📄 ${p.nombre.substring(0, 42)}...`,
+                        link: `/tramite/${p.slug}`
+                    })),
+                    {
+                        label: '🔍 Ver todos los resultados',
+                        link: `/buscar?q=${encodeURIComponent(mapIntent(text))}&original=${encodeURIComponent(text)}`
+                    }
+                ] : [
+                    { label: '🔍 Buscar en el directorio', link: '/buscar' }
+                ]
             }]);
 
-            if (navMatch) {
-                setTimeout(() => {
-                    navigate(navMatch[1]);
-                }, 1500);
-            }
-
         } catch (error) {
+            console.error(error);
             setIsTyping(false);
             setMessages(prev => [...prev, {
                 id: Date.now() + 1,
-                text: "Disculpa vecino, tuve un problema al procesar tu pregunta. Por favor intenta buscar arriba su trámite.",
+                text: 'Disculpa vecino, tuve un problema. Por favor intenta buscar en el directorio.',
                 sender: 'bot',
-                timestamp: new Date()
+                timestamp: new Date(),
+                options: [{ label: '🔍 Ir al Directorio', link: '/buscar' }]
             }]);
         }
     };
@@ -205,38 +231,35 @@ export default function TupaBot() {
 
     return (
         <>
-            { }
             {!isOpen && (
                 <button
                     className={`bot-fab ${hasNotification ? 'has-notification' : ''}`}
-                    onClick={() => {
-                        setIsOpen(true);
-                        setHasNotification(false);
-                    }}
+                    onClick={() => { setIsOpen(true); setHasNotification(false); }}
                     aria-label="Abrir asistente virtual"
                 >
                     <div className="bot-fab-icon">
                         <MessageSquare size={24} />
                     </div>
-                    <span className="bot-fab-tooltip">{hasNotification ? '¡Hola! ¿Necesitas ayuda?' : '¿Te ayudo a buscar?'}</span>
+                    <span className="bot-fab-tooltip">
+                        {hasNotification ? '¡Hola! ¿Necesitas ayuda?' : '¿Te ayudo a buscar?'}
+                    </span>
                     <span className="bot-online-indicator"></span>
                 </button>
             )}
 
-            { }
             <div className={`bot-window ${isOpen ? 'open' : ''}`}>
-
-                { }
                 <div className="bot-header">
                     <div className="bot-header-info">
                         <div className="bot-avatar">
                             <Bot size={20} color="var(--primary)" />
                         </div>
                         <div>
-                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white', fontWeight: 600 }}>Tupi Bot 🤖</h3>
+                            <h3 style={{ margin: 0, fontSize: '1rem', color: 'white', fontWeight: 600 }}>
+                                Tupi Bot 🤖
+                            </h3>
                             <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span style={{ width: 6, height: 6, background: '#4CAF50', borderRadius: '50%', display: 'inline-block' }}></span>
-                                En línea
+                                {modelReady ? 'IA Lista ✨' : 'En línea'}
                             </span>
                         </div>
                     </div>
@@ -247,7 +270,6 @@ export default function TupaBot() {
                     </div>
                 </div>
 
-                { }
                 <div className="bot-messages">
                     {messages.map((msg) => (
                         <div key={msg.id} className={`message-wrapper ${msg.sender}`}>
@@ -260,7 +282,6 @@ export default function TupaBot() {
                                 </div>
                                 <div className="message-time">{formatTime(msg.timestamp)}</div>
 
-                                { }
                                 {msg.options && (
                                     <div className="message-options">
                                         {msg.options.map((opt, i) => (
@@ -275,14 +296,10 @@ export default function TupaBot() {
                                     </div>
                                 )}
 
-                                { }
                                 {msg.action && (
                                     <button
                                         className="bot-action-btn"
-                                        onClick={() => {
-                                            navigate(msg.action.link);
-                                            setIsOpen(false);
-                                        }}
+                                        onClick={() => { navigate(msg.action.link); setIsOpen(false); }}
                                     >
                                         {msg.action.text} <ArrowRight size={14} />
                                     </button>
@@ -291,7 +308,6 @@ export default function TupaBot() {
                         </div>
                     ))}
 
-                    { }
                     {isTyping && (
                         <div className="message-wrapper bot">
                             <div className="message-avatar bot"><Bot size={14} /></div>
@@ -305,19 +321,15 @@ export default function TupaBot() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                { }
                 <div className="bot-input-area">
                     <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSend(inputValue);
-                        }}
+                        onSubmit={(e) => { e.preventDefault(); handleSend(inputValue); }}
                         style={{ display: 'flex', width: '100%', gap: '8px' }}
                     >
                         <input
                             type="text"
                             className="bot-input"
-                            placeholder="Ej. Requisitos para licencia..."
+                            placeholder={!modelReady ? "⏳ Cargando IA..." : "Ej. quiero construir mi casa..."}
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             disabled={isTyping}
@@ -335,7 +347,6 @@ export default function TupaBot() {
                 <div className="bot-footer-branding">
                     Desarrollado para TUPA Digital V1.0
                 </div>
-
             </div>
         </>
     );
@@ -343,31 +354,20 @@ export default function TupaBot() {
 
 function FormatMessage({ text }) {
     if (!text) return null;
-
     const lines = text.split('\n');
-
     return (
         <div className="formatted-message">
             {lines.map((line, i) => {
-                let content = line;
-
                 const boldRegex = /\*\*(.*?)\*\*/g;
                 const parts = [];
                 let currIndex = 0;
                 let match;
-
                 while ((match = boldRegex.exec(line)) !== null) {
-                    if (match.index > currIndex) {
-                        parts.push(line.substring(currIndex, match.index));
-                    }
+                    if (match.index > currIndex) parts.push(line.substring(currIndex, match.index));
                     parts.push(<strong key={match.index}>{match[1]}</strong>);
                     currIndex = match.index + match[0].length;
                 }
-
-                if (currIndex < line.length) {
-                    parts.push(line.substring(currIndex));
-                }
-
+                if (currIndex < line.length) parts.push(line.substring(currIndex));
                 const finalContent = parts.length > 0 ? parts : line;
 
                 if (line.trim().startsWith('*')) {
@@ -375,13 +375,13 @@ function FormatMessage({ text }) {
                     const listParts = [];
                     let lIndex = 0;
                     let lMatch;
-                    while ((lMatch = boldRegex.exec(cleanLine)) !== null) {
+                    const boldRegex2 = /\*\*(.*?)\*\*/g;
+                    while ((lMatch = boldRegex2.exec(cleanLine)) !== null) {
                         if (lMatch.index > lIndex) listParts.push(cleanLine.substring(lIndex, lMatch.index));
                         listParts.push(<strong key={lMatch.index}>{lMatch[1]}</strong>);
                         lIndex = lMatch.index + lMatch[0].length;
                     }
                     if (lIndex < cleanLine.length) listParts.push(cleanLine.substring(lIndex));
-
                     return (
                         <div key={i} className="bot-list-item">
                             <span className="dot">•</span>
@@ -389,7 +389,6 @@ function FormatMessage({ text }) {
                         </div>
                     );
                 }
-
                 return (
                     <p key={i} style={{ marginBottom: line.trim() === '' ? '0' : '8px', marginTop: 0 }}>
                         {finalContent}
